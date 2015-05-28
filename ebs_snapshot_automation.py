@@ -22,18 +22,13 @@ import logging
 import sys
 
 
-def make_snapshots(connection, tag):
+def make_snapshots(connection, tag_key, tag_value):
     """Create snapshots
 
     Create a snapshot for every EBS volume attached to an instance which
     contains the tag used to filter for instances to backup.
     """
-    tag_key_value = tag.split(':')
-    if len(tag_key_value) != 2:
-        logging.error("Given tag key value: \"%s\" is invalid.", tag)
-        sys.exit(1)
-
-    tag_filter = {'tag:%s' % tag_key_value[0]: '%s' % tag_key_value[1]}
+    tag_filter = {'tag:%s' % tag_key: '%s' % tag_value}
     reservations = connection.get_all_reservations(filters=tag_filter)
     instances = list(chain.from_iterable([x.instances for x in reservations]))
     if not instances:
@@ -86,6 +81,8 @@ def make_snapshots(connection, tag):
                 snapshot.add_tag('Creator', 'ebs_snapshot_automation')
                 snapshot.add_tag('Origin-Instance',
                                  volume.attach_data.instance_id)
+                snapshot.add_tag('Origin-%s' % tag_key,
+                                 tag_value)
             except BotoServerError as exc:
                 logging.error("Tagging the snapshot %s of volume %s failed:\n%s",
                               snapshot.id,
@@ -93,14 +90,16 @@ def make_snapshots(connection, tag):
                               exc)
 
 
-def delete_old_snapshots(connection, num_backups):
+def delete_old_snapshots(connection, tag_key, tag_value, num_backups):
     """Remove old snapshots
 
-    Remove the oldest snapshots for a volume if there are more snapshots than
-    configured in num_backups
+    Remove the oldest snapshots for a volume, which have been made for the
+    specified tag, if there are more snapshots than configured in num_backups
     """
     try:
-        snapshots = connection.get_all_snapshots(filters={'tag:Creator': 'ebs_snapshot_automation'})
+        snapshots = connection.get_all_snapshots(filters={
+            'tag:Creator': 'ebs_snapshot_automation',
+            'tag:Origin-%s' % tag_key: tag_value})
     except BotoServerError as exc:
         logging.error("Getting all previously created snapshots failed:\n%s", exc)
         sys.exit(1)
@@ -158,8 +157,15 @@ def main():
     except BotoServerError as exc:
         logging.error("Establishing a connection to AWS failed:\n%s", exc)
 
-    make_snapshots(connection, args.tag)
-    delete_old_snapshots(connection, args.num_backups)
+    tag_key_value = args.tag.split(':')
+    if len(tag_key_value) != 2:
+        logging.error("Given tag key value: \"%s\" is invalid.", args.tag)
+        sys.exit(1)
+    tag_key = tag_key_value[0]
+    tag_value = tag_key_value[1]
+
+    make_snapshots(connection, tag_key, tag_value)
+    delete_old_snapshots(connection, tag_key, tag_value, args.num_backups)
 
 
 if __name__ == "__main__":
