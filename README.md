@@ -17,19 +17,27 @@ been reached.
 
 ```
 john@doe:~$ ./ebs_snapshot_automation.py --help
-usage: ebs_snapshot_automation.py [-h] -a AWS_ACCESS_KEY -s AWS_SECRET_KEY
-                                  [-r REGION] [-n NUM_BACKUPS] [-t TAG]
+usage: ebs_snapshot_automation.py [-h] [--aws-access-key-id AWS_ACCESS_KEY_ID]
+                                  [--aws-secret-access-key AWS_SECRET_ACCESS_KEY]
+                                  [--profile PROFILE_NAME]
+                                  [--region REGION_NAME] [-n NUM_BACKUPS]
+                                  [-t TAG]
 
 Script to automate snapshotting of EBS volumes
 
 optional arguments:
   -h, --help            show this help message and exit
-  -a AWS_ACCESS_KEY, --access-key AWS_ACCESS_KEY
-                        The AWS access key to use
-  -s AWS_SECRET_KEY, --secret-key AWS_SECRET_KEY
-                        The AWS secret key to use
-  -r REGION, --region REGION
-                        The AWS region to connect to
+  --aws-access-key-id AWS_ACCESS_KEY_ID
+                        Specify a value here if you want to use a different
+                        AWS_ACCESS_KEY_ID than configured in the AWS CLI.
+  --aws-secret-access-key AWS_SECRET_ACCESS_KEY
+                        Specify a value here if you want to use a different
+                        AWS_SECRET_ACCESS_KEY than configured in the AWS CLI.
+  --profile PROFILE_NAME
+                        The AWS CLI profile to use. Defaults to the default
+                        profile.
+  --region REGION_NAME  The AWS region to connect to. Defaults to the one
+                        configured for the AWS CLI.
   -n NUM_BACKUPS, --num-backups NUM_BACKUPS
                         The number of backups for each volume to keep
   -t TAG, --tag TAG     Key and value (separated by a colon) of a tag attached
