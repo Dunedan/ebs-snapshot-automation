@@ -12,6 +12,15 @@ configured how many snapshots of a volume are kept. If more snapshots exist the
 oldest ones will be deleted until the maximum amount of desired snapshots has
 been reached.
 
+# Installation
+
+* Clone this repository and enter the directory you cloned it into.
+
+* Install the script using pip: ```pip install .```
+
+* If the script isn't available in your PATH afterwards, the location where `pip`
+installed it into, might not be in your `$PATH`. Try
+```export PATH=$PATH:~/.local/bin```
 
 # Usage
 
